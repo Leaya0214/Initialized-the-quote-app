@@ -26,6 +26,14 @@ Route::get('/v1', function (Request $request) {
             return $query->where('email', 'like', '%' . $request->q . '%')
                 ->orWhere('first_name', 'like', '%' . $request->q . '%')
                 ->orWhere('last_name', 'like', '%' . $request->q . '%');
-        })->paginate();
-    return UserResource::collection($users);
+        })->select('id as uuid', 'first_name', 'last_name')->paginate(5);
+
+    $response = [];
+    $response['items'] = $users->items();
+    $response['metadata'] = [
+        'current_url' => $users->url($users->currentPage()),
+        'next_url' => $users->nextPageUrl(),
+        'total_page' => intval($users->total() / $users->perPage()) + 1
+    ];
+    return $response;
 });
